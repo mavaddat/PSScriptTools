@@ -17,7 +17,7 @@ Create or modify a format.ps1xml file.
 New-PSFormatXML [-InputObject] <Object> [[-Properties] <Object[]>]
 [-Typename <String>] [[-FormatType] <String>] [[-ViewName] <String>]
 [-Path] <String> [-GroupBy <String>] [-Wrap] [-Append]
- [-Passthru] [-WhatIf] [-Confirm] [<CommonParameters>]
+ [-PassThru] [-WhatIf] [-Confirm] [<CommonParameters>]
 ```
 
 ## DESCRIPTION
@@ -30,7 +30,7 @@ Pipe an instance of your custom object to this function and it will generate a f
 
 Even though this command was written to make it easier when writing modules that might use custom objects, you can use this command to define additional views for standard objects such as files and processes. See Examples.
 
-If you run this command inside the Visual Studio Code PowerShell Integrated Console and use -Passthru, the new file will automatically be opened in your editor.
+If you run this command inside the Visual Studio Code PowerShell Integrated Console and use -PassThru, the new file will automatically be opened in your editor.
 
 ## EXAMPLES
 
@@ -43,7 +43,7 @@ PS C:\> $obj = [PSCustomObject]@{
     Name         = "Jeff"
     Date         = (Get-Date)
     Computername = $env:computername
-    OS           = (Get-Ciminstance win32_operatingsystem ).caption
+    OS           = (Get-Ciminstance Win32_OperatingSystem ).caption
 }
 PS C:\> $upParams = @{
  TypeName = $tname
@@ -68,9 +68,9 @@ This example begins be creating a custom object. You might normally do this in a
 
 ```powershell
 PS C:\> $fmt = "C:\scripts\$tname.format.ps1xml"
-PS C:\> $obj | New-PSFormatXML -Prop Name,Date,Computername,OS -path $fmt
-PS C:\> $obj | New-PSFormatXML -Prop Name,OS,Runtime -view runtime -path $fmt -append
-PS C:\> $obj | New-PSFormatXML -FormatType List -path $fmt -append
+PS C:\> $obj | New-PSFormatXML -Prop Name,Date,Computername,OS -Path $fmt
+PS C:\> $obj | New-PSFormatXML -Prop Name,OS,Runtime -view runtime -Path $fmt -append
+PS C:\> $obj | New-PSFormatXML -FormatType List -Path $fmt -append
 ```
 
 The object is then piped to New-PSFormatXML to generate a new format.ps1xml file. Subsequent commands add more formatted views. When the file is completed it can be modified. Note that these examples are using shortened parameter names.
@@ -107,7 +107,7 @@ After the format.ps1xml file is applied, the object can be formatted as designed
 
 ```powershell
 PS C:\> $obj | New-PSFormatXML -view computer -Group Computername
--path "c:\work\$tname.format.ps1xml" -append
+-Path "c:\work\$tname.format.ps1xml" -append
 PS C:\> Update-FormatData -appendpath "C:\work\$tname.format.ps1xml"
 PS C:\> $obj | Format-Table -View computer
 
@@ -135,7 +135,7 @@ PS C:\> Get-Service bits | New-PSFormatXML @params
 PS C:\> Update-FormatData $params.path
 ```
 
-This will create a custom format file for service objects. This will create a wide display using the Displayname property. Once loaded into PowerShell, you can run a command like this:
+This will create a custom format file for service objects. This will create a wide display using the DisplayName property. Once loaded into PowerShell, you can run a command like this:
 
 Get-Service | Sort-Object Status | Format-Wide -view Status
 
@@ -230,9 +230,9 @@ Accept pipeline input: True (ByValue)
 Accept wildcard characters: False
 ```
 
-### -Passthru
+### -PassThru
 
-Write the ps1xml file object to the pipeline. If you run this command inside the VS Code PowerShell integrated console and use this parameter, the file will be opened in the editor.
+Write the ps1xml file object to the pipeline. If you run this command inside the VS Code PowerShell integrated console, or the PowerShell ISE and use this parameter, the file will be opened in the editor.
 
 ```yaml
 Type: SwitchParameter
@@ -264,7 +264,7 @@ Accept wildcard characters: False
 
 ### -Properties
 
-Enter a set of properties to include. If you don't specify anything then all properties will be used. When creating a Wide view you should only specify a single property.
+Enter a set of properties to include. If you don't specify anything then all properties will be used. When creating a Wide view you should only specify a single property. If you specify an invalid property name, the ps1xml file will NOT be created. Ideally, you will specify an instance of the object that contains a value for all the properties you want to use.
 
 ```yaml
 Type: Object[]
@@ -379,3 +379,5 @@ Learn more about PowerShell: http://jdhitsolutions.com/blog/essential-powershell
 ## RELATED LINKS
 
 [Update-FormatData]()
+
+[Get-FormatView](Get-FormatView.md)

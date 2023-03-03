@@ -1,6 +1,6 @@
 Function Show-ANSISequence {
     [cmdletbinding(DefaultParameterSetName = "basic")]
-    [outputtype([system.string])]
+    [OutputType([System.String])]
 
     Param(
         [Parameter(ParameterSetName = "basic", HelpMessage = "Display basic ANSI escape sequences. This is the default setting.")]
@@ -18,9 +18,23 @@ Function Show-ANSISequence {
         [switch]$AsString
     )
 
+    Write-Verbose "Starting $($MyInvocation.MyCommand)"
+    Write-Debug "Using parameter set $($PSCmdlet.ParameterSetName)"
+    Write-Debug "Bound parameters"
+    $PSBoundParameters | Out-String | Write-Debug
+
     #default to Basic even if the user doesn't specify the -Basic parameter
     if ($PSCmdlet.parametersetname -eq 'basic') {
         $Basic = $True
+    }
+    elseif ($PSCmdlet.ParameterSetName -eq 'foreback') {
+        Write-Debug "Testing bound parameters"
+        #9/15/2022 Fixed logic to avoid including Foreground unless specified. Issue #130 JDH
+        if ( (-Not ($PSBoundParameters.ContainsKey('foreground'))) -AND (-Not ($PSBoundParameters.ContainsKey('background')))) {
+            #default to foreground Issue # 110
+            Write-Debug "Setting Foreground as default"
+            $Foreground = $True
+        }
     }
 
     # a private function to display results in columns on the screen
@@ -35,28 +49,33 @@ Function Show-ANSISequence {
                 $row
                 $c = 1
                 $row = ""
+                #need to reset $i otherwise the entry gets omitted
+                # Issue #125
+                $i--
             }
             else {
                 $row += "$($all[$i]) `t"
                 $c++
             }
         }
-    }
+    } #display function
 
     if ($IsCoreCLR) {
+        Write-Debug "CoreCLR"
         $esc = "`e"
         $escText = '`e'
         $max = 3
     }
     else {
-        $esc = $([char]0x1b)
-        $escText = '$([char]0x1b)'
+        Write-Debug "Desktop"
+        $esc = $([char]27)
+        $escText = '$([char]27)'
         $max = 2
     }
 
     #region basic
     if ($basic) {
-
+        Write-Debug "Get basic settings"
         Add-Border "Basic Sequences" -ANSIText "$esc[1m" | Write-Host
 
         $basichash = @{
@@ -85,11 +104,12 @@ Function Show-ANSISequence {
     #region foreground
 
     If ($Foreground) {
-
+        Write-Debug "Getting foreground"
         if ($Type -match "All|Simple") {
             Add-Border "Foreground" -ANSIText "$esc[93m" | Write-Host
-            $n = 30..37
-            $n += 90..97
+            $n = [System.Collections.Generic.list[int]]::new()
+            30..37 | ForEach-Object {$n.Add($_)}
+            90..97 | ForEach-Object {$n.Add($_)}
 
             $all = $n | ForEach-Object {
                 $sequence = "$esctext[$($_)mHello$esctext[0m"
@@ -123,7 +143,7 @@ Function Show-ANSISequence {
 
     #region background
     If ($Background) {
-
+        Write-Debug "Getting background"
         if ($Type -match "All|Simple") {
             Add-Border "Background" -ANSIText "$esc[46m" | Write-Host
             $n = 40..47
@@ -163,7 +183,7 @@ Function Show-ANSISequence {
     #region RGB
 
     if ($RGB) {
-
+        Write-Debug "Using RBG values"
         if ($rgb.count -ne 3) {
             Write-Warning "Wrong number of arguments. Specify RED,GREEN and BLUE values"
             return
@@ -192,4 +212,6 @@ Function Show-ANSISequence {
 
     #insert a blank line to set off the results
     Write-Host "`r"
+
+    Write-Verbose "Ending $($MyInvocation.MyCommand)"
 }

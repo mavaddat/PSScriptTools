@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Format type data generated 10/12/2020 08:52:42 by PROSPERO\Jeff
 This file was created using the New-PSFormatXML command that is part
@@ -15,8 +15,8 @@ https://github.com/jdhitsolutions/PSScriptTools
       </ViewSelectedBy>
       <GroupBy>
         <ScriptBlock>
-        if ($host.name -match "console"){
-        "$([char]0x1b)[1;4m$($_.typename)$([char]0x1b)[0m"
+        if ($host.name -match "console|code|remotehost"){
+        "$([char]27)[1;4m$($_.typename)$([char]27)[0m"
         }
         else {
           $_.Typename

@@ -51,7 +51,7 @@ Create a single progress bar for 78% using the Circle symbol and a custom color.
 ### Example 3
 
 ```powershell
-PS C:\> Get-CimInstance -ClassName win32_operatingsystem |
+PS C:\> Get-CimInstance -ClassName Win32_OperatingSystem |
 Select-Object -property @{N="Computername";E={$_.CSName}},
 @{N="TotalMemGB";E={Format-Value $_.TotalVisibleMemorySize -unit MB}},
 @{N="FreeMemGB";E={Format-Value $_.FreePhysicalMemory -unit MB}},
@@ -76,19 +76,19 @@ PS C:\> $sb = {
   $top = Get-ChildItem c:\scripts -Directory
   $i = 0
   $out=@()
-  $pos = $host.ui.RawUI.CursorPosition
+  $pos = $host.UI.RawUI.CursorPosition
   Foreach ($item in $top) {
     $i++
     $pct = [math]::round($i/$top.count,2)
     Write-ANSIProgress -PercentComplete $pct -position $pos
     Write-Host "  Processing $(($item.fullname).padright(80))"  -NoNewline
-    $out+= Get-ChildItem -path $item -Recurse -file |
+    $out+= Get-ChildItem -Path $item -Recurse -file |
     Measure-Object -property length -sum |
     Select-Object @{Name="Path";Expression={$item.fullname}},Count,
     @{Name="Size";Expression={$_.Sum}}
   }
   Write-Host ""
-  $out | Sort-object -property Size -Descending
+  $out | Sort-Object -property Size -Descending
 }
 PS C:\> Invoke-Command -scriptblock $sb
 ```
@@ -185,3 +185,5 @@ Learn more about PowerShell: http://jdhitsolutions.com/blog/essential-powershell
 [New-ANSIBar](New-ANSIBar.md)
 
 [New-RedGreenGradient](New-RedGreenGradient.md)
+
+[Show-ANSISequence](Show-ANSISequence.md)

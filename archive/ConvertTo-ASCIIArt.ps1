@@ -1,4 +1,5 @@
 ﻿
+#Removed 4/4/2022 as the online resources no longer exist
 <#
 font list at https://artii.herokuapp.com/fonts_list
 font names are case-sensitive
@@ -10,7 +11,7 @@ invoke-restmethod https://artii.herokuapp.com/fonts_list
 Function ConvertTo-ASCIIArt {
     [cmdletbinding()]
     [alias("cart")]
-    [outputtype([System.String])]
+    [OutputType([System.String])]
     Param(
         [Parameter(Position = 0, Mandatory, HelpMessage = "Enter a short string of text to convert", ValueFromPipeline)]
         [ValidateNotNullOrEmpty()]
@@ -21,11 +22,11 @@ Function ConvertTo-ASCIIArt {
     )
 
     Begin {
-        Write-Verbose "[$((Get-Date).TimeofDay) BEGIN] Starting $($myinvocation.mycommand)"
+        Write-Verbose "[$((Get-Date).TimeOfDay) BEGIN] Starting $($MyInvocation.MyCommand)"
     } #begin
 
     Process {
-        Write-Verbose "[$((Get-Date).TimeofDay) PROCESS] Processing $text with font $Font"
+        Write-Verbose "[$((Get-Date).TimeOfDay) PROCESS] Processing $text with font $Font"
         $testEncode = [uri]::EscapeDataString($Text)
         $url = "http://artii.herokuapp.com/make?text=$testEncode&font=$Font"
         Try {
@@ -36,7 +37,7 @@ Function ConvertTo-ASCIIArt {
         }
     } #process
     End {
-        Write-Verbose "[$((Get-Date).TimeofDay) END    ] Ending $($myinvocation.mycommand)"
+        Write-Verbose "[$((Get-Date).TimeOfDay) END    ] Ending $($MyInvocation.MyCommand)"
     } #end
 }
 

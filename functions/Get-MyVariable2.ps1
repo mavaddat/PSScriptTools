@@ -24,7 +24,7 @@ Function Get-MyVariable {
     $skip = '?', 'args','ConsoleFileName', 'Error', 'esc',
     'ExecutionContext', 'false', 'HOME', 'Host', 'input', 'MaximumAliasCount',
     'MaximumDriveCount', 'MaximumErrorCount', 'MaximumFunctionCount', 'MaximumHistoryCount',
-    'MaximumVariableCount', 'MyInvocation', 'null', 'Passthru', 'PID', 'PROFILE',
+    'MaximumVariableCount', 'MyInvocation', 'null', 'PassThru', 'PID', 'PROFILE',
     'PSBoundParameters', 'PSCommandPath', 'PSCulture', 'PSDefaultParameterValues', 'PSEdition',
     'PSGetPath', 'PSHOME', 'PSScriptRoot', 'PSUICulture', 'PSVersionTable',
     'PWD', 'ShellId', 'true', 'verify', 'skip', 'scope', 'this', 'LastExitCode',
@@ -48,10 +48,10 @@ Function Get-MyVariable {
     Write-Verbose "Filtering variables"
 
     #filter out some automatic variables
-    $filtered = $variables | Where-Object { $psvariables -notcontains $_.name }
+    $filtered = $variables | Where-Object { $psvariables -NotContains $_.name }
 
     if ($NoTypeInformation) {
-        #write results with not object types
+        #write results without object types
         $filtered
     }
     else {
@@ -61,7 +61,6 @@ Function Get-MyVariable {
     }
 
     Write-Verbose "Finished getting my variables"
-
 
 } #end function
 

@@ -11,9 +11,9 @@
         [ValidatePattern("^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$")]
          [ValidateScript( {
             #verify each octet is valid to simplify the regex
-                $test = ($_.split(".")).where({[int]$_ -gt 254})
+                $test = ($_.split(".")).where({[int]$_ -gt 255})
                 if ($test) {
-                    Throw "$_ does not appear to be a valid IPv4 address"
+                    Throw "$_ does not appear to be a valid IPv4 address."
                     $false
                 }
                 else {
@@ -24,7 +24,7 @@
     )
 
     Begin {
-        Write-Verbose "Starting $($MyInvocation.Mycommand)"
+        Write-Verbose "Starting $($MyInvocation.MyCommand)"
         $baseURL = 'http://whois.arin.net/rest'
         #default is XML anyway
         $header = @{"Accept" = "application/xml"}
@@ -45,7 +45,7 @@
 
         if ($r.net) {
             Write-Verbose "Creating result"
-            [pscustomobject]@{
+            [PSCustomObject]@{
                 PSTypeName             = "WhoIsResult"
                 IP                     = $ipaddress
                 Name                   = $r.net.name
@@ -60,6 +60,6 @@
     } #Process
 
     End {
-        Write-Verbose "Ending $($MyInvocation.Mycommand)"
+        Write-Verbose "Ending $($MyInvocation.MyCommand)"
     } #end
 }

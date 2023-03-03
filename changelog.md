@@ -2,74 +2,80 @@
 
 This file contains the most recent change history for the PSScriptTools module.
 
-## v2.36.0
+## v2.46.0
 
-+ Update `Get-MyVariable` to make it more compatible with PowerShell 7 ([Issue #103](https://github.com/jdhitsolutions/PSScriptTools/issues/103)). This also makes the command now compatible with the PowerShell ISE.
-+ Added table view called `Simple` to format file for Aliases.
-+ Modified `Options` table view in `alias.format.ps1xml` to highlight read-only aliases in Red using ANSI if running in a PowerShell console host.
-+ Updated `Get-PSLocation` to include `$PSHome`.
-+ Modified module to only dot source `Get-MyCounter.ps1` if running Windows. The file contains a class definition that uses a Windows-only reference and PowerShell "scans" the file before it dot sources it, which throws an exception on non-Windows platforms.
-+ Added command `Get-PSSessionInfo` and an alias of `gsin`. The command uses a new format file, `pssessioninfo.format.ps1xml`.
-+ Added command `Test-IsElevated`.
-+ Updated `Get-PSWho` to included elevated information for non-Windows platforms.
-+ Added format file `pswho.format.ps1xml`.
-+ Help updates
-+ Updated `README.md`.
+### Changed
 
-## v2.35.0
+- General code cleanup and formatting.
+- Modified module to only load ANSI file format features if PSStyle is not detected.
+- Modified `psparameterinfo.format.ps1xml` to highlight True values with an ANSI highlight color.
+- Modified `Get-FolderSizeInfo` to use `System.Collections.Generic.List[]` in place of `ArrayList`.
+- Modified back-end processing for the help PDF file to reduce its size.
+- Restored header to `Get-PSScriptTools`.
+- Help updates.
+- Revised Changelog layout.
+- Updated `README.md`.
 
-+ Added `ConvertTo-TitleCase` command with aliases of `totc` and `title`.
-+ Added `New-FunctionItem` command with an alias of `nfi` to create functions on-the-fly.
-+ Added `Show-FunctionItem` command with an alias of `sfi` to display a function.
-+ Modified format files to test the console when using ANSI formatting. ([Issue #102](https://github.com/jdhitsolutions/PSScriptTools/issues/102))
-+ Modified ANSI functions to display a warning when run in the PowerShell ISE and exit.
-+ Updated `Get-PSScriptTools` to not use ANSI in the header when running in a non-console host.
-+ Updated `Get-CommandSyntax` to not use ANSI formatting when running in a non-console host.
-+ Updated `README.md`.
+### Fixed
 
-## v2.34.1
+- Fixed a bug in `Get-GitSize` that was failing to get hidden items in the `.git` folders. Also modified the command to use `Get-FolderSizeInfo` which is faster than using `Get-ChildItem`.
+- Modified `Get-PSScriptTools` to properly return version information.
 
-+ Updated `license.txt` with the new year.
-+ Added missing online help links.
-+ Fixed bug in `Get-ParameterInfo` that failed to display dynamic parameters when using a command alias. ([Issue #101](https://github.com/jdhitsolutions/PSScriptTools/issues/101))
-+ Modified format file for `PSParameterInfo` to display `Mandatory` and `IsDynamic` values in color when the value is `$True`.
+### Added
 
-## v2.34.0
+- Added function `Get-TypeMember` with format file `pstypemember.format.ps1xml` and type extension `pstypemember.types.ps1xml`. The function has an alias of `gtm`.
+- Added the parameter `MainBranch` to `Remove-MergedGitBranch` to allow the user to specify the name of their main or master branch. The default is `master`.
 
-+ Fixed typo bug in `Get-PSScriptTools` that was failing to get command aliases. ([Issue #99](https://github.com/jdhitsolutions/PSScriptTools/issues/99))
-+ Modified `Get-PSScriptTools` to improve performance. Assuming that all exported functions are using standard verbs.
-+ Added `Get-PSAnsiFileMap`.
-+ Added `Set-PSAnsiFileMapEntry`.
-+ Added `Remove-PSAnsiFileMapEntry`.
-+ Added `Export-PSAnsiFileMap`.
-+ Added `Show-ANSISequence`.
-+ Updated `filesystem.ansi.format.ps1xml` to use last matching pattern.
-+ Modified `Show-Tree` to better handle piped-in file and directory objects.
-+ Added an alias `ab` for `Add-Border`.
-+ Added an alias of `nab` for `New-AnsiBar`.
-+ Updated `README.md`.
-+ Updated module description.
-+ Help updates.
+### Deprecated
 
-## v2.33.1
+- Marked `Out-ConditionalColor` and `Set-ConsoleColor` as deprecated. They will be removed in a future release.
 
-+ Fixed bug in `ConvertTo-WPFGrid` with refresh and timeout values. (Issue #98)
-+ Added missing online help links.
-+ Added a few related module links in `README.md`.
+## v2.45.0
 
-## v2.33.0
+- Fixed help typo for `Get-PSUnique` [PR 133](https://github.com/jdhitsolutions/PSScriptTools/pull/133). Thank you @fiala-sns.
+- Updated `Get-WindowsVersion` to include `DisplayVersion`, e.g. `22H2`.
+- Modified format file `windowsversion.format.ps1xml` to replace `ReleaseID` with the `DisplayVersion` value.
+- Revised `Get-WindowsVersion` to use `systeminfo` to retrieve the operating system name and if that fails, fall back to using the registry entry. The registry entry for Windows 11 typically still shows Windows 10.
+- Help updates.
+- Updated `README.md`.
 
-+ Added `Select-Before`,`Select-After`,`Select-Newest` and `Select-Oldest` and their respective aliases of *before*,*after*,*newest*, and *oldest*.
-+ Added `Get-MyCounter` and a custom format file `mycounter.format.ps1xml`.
-+ Added `Trace-Message` and its alias *trace*.
-+ Added more Verbose messages to `Get-PSScriptTools`.
-+ Code cleanup in `SelectFunctions.ps1`.
-+ Modified `Get-PSScriptTools` to let you specify a verb. Updated command help.
-+ Modified `ConvertTo-Markdown` to handle properties with line returns when formatting as a table. (I[Issue #97](https://github.com/jdhitsolutions/PSScriptTools/issues/97))
-+ Code cleanup in sample script files.
-+ Added sample file `CounterMarkdown.ps1`.
-+ Updated `README.md`.
+## v2.44.0
+
+- Updated `Show-ANSISequence` to fix a bug where foreground samples where included when specifying background. [Issue #130](https://github.com/jdhitsolutions/PSScriptTools/issues/130)
+- Updated contributing guidelines.
+- Updated `README.md`.
+
+## v2.43.0
+
+- Fixed VSCode snippets to run in a PowerShell 7 integrated console. [Issue #124](https://github.com/jdhitsolutions/PSScriptTools/issues/124)
+- Updated `Show-AnsiSequence` to fix a display bug that was dropping values. [Issue #125](https://github.com/jdhitsolutions/PSScriptTools/issues/125)
+- Removed `ConvertTo-ASCIIArt` as the online resource no longer appears to exist. [Issue #127](https://github.com/jdhitsolutions/PSScriptTools/issues/127)
+- Updated missing online help links.
+- Updated `Get-FoldersizeInfo` to better handle null values. [Issue #129](https://github.com/jdhitsolutions/PSScriptTools/issues/129)
+- Added new sample script `today.ps1`.
+- Help updates.
+- Updated `README.md`.
+
+## v2.42.0
+
+- Updated module manifest to load required .NET assembly for `Convert-HTMLtoAnsi`. [Issue #124](https://github.com/jdhitsolutions/PSScriptTools/issues/124)
+- Updated `Show-AnsiSequence` to fix a display bug that was dropping values. [Issue #125](https://github.com/jdhitsolutions/PSScriptTools/issues/125)
+- Updated missing online help links.
+- Added new sample script `today.ps1`.
+- Help updates.
+- Updated `README.md`.
+
+## v2.41.0
+
+- Added function `Copy-CommandHistory` with an alias of `ch`.
+- Updated `Out-Copy` to ignore ANSI unless specified. [Issue #118](https://github.com/jdhitsolutions/PSScriptTools/issues/118)
+- Added an alias of `oc` for `Out-Copy`.
+- Updated `New-PSFormatXML` to fix ReadOnly property error. [Issue #121](https://github.com/jdhitsolutions/PSScriptTools/issues/121)
+- Updated `Get-ModuleCommand` to include version information and to accept pipeline input.
+- Updated `modulecommand.format.ps1xml` with a new table view called `version`.
+- Updated missing online help links.
+- Updated `README.md`.
 
 ## Archive
 
-If you need to see older change history, look at the [Archive ChangeLog](https://github.com/jdhitsolutions/PSScriptTools/blob/master/Archive-ChangeLog.md)
+If you need to see older change history, look at the [Archive ChangeLog](https://github.com/jdhitsolutions/PSScriptTools/blob/master/Archive-ChangeLog.md) online.

@@ -1,7 +1,7 @@
 ---
 external help file: PSScriptTools-help.xml
 Module Name: PSScriptTools
-online version:
+online version: https://bit.ly/3qqnX5p
 schema: 2.0.0
 ---
 
@@ -13,7 +13,7 @@ Show a function in written form.
 
 ## SYNTAX
 
-```yaml
+```yamnl
 Show-FunctionItem [-Name] <String> [<CommonParameters>]
 ```
 

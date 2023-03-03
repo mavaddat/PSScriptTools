@@ -1,50 +1,65 @@
 #enable verbose messaging in the psm1 file
-if ($myinvocation.line -match "-verbose") {
-    $VerbosePreference = "continue"
+if ($MyInvocation.line -match '-verbose') {
+    $VerbosePreference = 'continue'
 }
-Write-Verbose "Loading public functions"
+Write-Verbose 'Loading public functions'
 
-#exclude Get-MyCounter.ps1 because it requires a Windows platform
-Get-ChildItem -path $PSScriptRoot\functions\*.ps1  -Exclude 'Get-MyCounter.ps1' | ForEach-Object -process {
-    Write-Verbose $_.fullname
+#exclude files that have special requirements
+Get-ChildItem -Path $PSScriptRoot\functions\*.ps1 -Exclude 'Get-MyCounter.ps1', 'Get-FileExtensionInfo.ps1' |
+ForEach-Object -Process {
+    Write-Verbose $_.FullName
     . $_.FullName
 }
 
+Write-Verbose 'Loading Windows-specific commands'
 if ($IsWindows -OR ($PSEdition -eq 'Desktop')) {
     . "$PSScriptRoot\functions\Get-MyCounter.ps1"
 }
 
-Write-Verbose "Define the global PSAnsiFileMap variable"
-$json = "psansifilemap.json"
-
-#test for user version in $HOME
-$userjson = Join-Path -path $HOME -ChildPath $json
-$modjson = Join-Path -path $PSScriptRoot -ChildPath $json
-
-if (Test-Path -path $userjson) {
-    $map = $userjson
-}
-else {
-    #use the file from this module
-    $map = $modjson
+if ($IsCoreCLR) {
+    Write-Verbose 'Loading PowerShell 7 specific commands'
+    . "$PSScriptRoot\functions\Get-FileExtensionInfo.ps1"
 }
 
-#ConvertFrom-Json doesn't write simple objects to the pipeline in Windows PowerShell so I
-#need to process the results individually.
-$mapData = [System.Collections.Generic.List[object]]::new()
+#load ANSIFile Entry format if user is not using $PSStyle
+if (-Not $PSStyle.FileInfo) {
+    Write-Verbose "Using module PSAnsiFile features"
+    Write-Verbose 'Loading PSAnsiFile format files'
+    Update-FormatData -AppendPath "$PSScriptRoot\formats\psansifileentry.format.ps1xml"
+    Update-FormatData -AppendPath "$PSScriptRoot\formats\filesystem-ansi.format.ps1xml"
 
-Get-Content -path $map | ConvertFrom-Json | Foreach-Object {$_} | foreach-Object {
-    $entry = [pscustomobject]@{
-        PSTypeName  = "PSAnsiFileEntry"
-        Description = $_.description
-        Pattern = $_.pattern
-        Ansi = $_.ansi
+    Write-Verbose 'Define the global PSAnsiFileMap variable'
+    $json = 'psansifilemap.json'
+
+    #test for user version in $HOME
+    $UserJSON = Join-Path -Path $HOME -ChildPath $json
+    $moduleJSON = Join-Path -Path $PSScriptRoot -ChildPath $json
+
+    if (Test-Path -Path $UserJSON) {
+        $map = $UserJSON
     }
-    $mapData.Add($entry)
-}
-Set-Variable -Name PSAnsiFileMap -value $mapdata -Scope Global
+    else {
+        #use the file from this module
+        $map = $moduleJSON
+    }
 
-Write-Verbose "Define special character map"
+    #ConvertFrom-Json doesn't write simple objects to the pipeline in Windows PowerShell so I
+    #need to process the results individually.
+    $mapData = [System.Collections.Generic.List[object]]::new()
+
+    Get-Content -Path $map | ConvertFrom-Json | ForEach-Object { $_ } | ForEach-Object {
+        $entry = [PSCustomObject]@{
+            PSTypeName  = 'PSAnsiFileEntry'
+            Description = $_.description
+            Pattern     = $_.pattern
+            Ansi        = $_.ansi
+        }
+        $mapData.Add($entry)
+    }
+    Set-Variable -Name PSAnsiFileMap -Value $mapData -Scope Global
+} #load PSAnsiFile features
+
+Write-Verbose 'Define special character map'
 $global:PSSpecialChar = @{
     FullBlock        = ([char]0x2588)
     LightShade       = ([char]0x2591)
@@ -73,38 +88,60 @@ $global:PSSpecialChar = @{
 }
 
 Write-Verbose "Defining the variable `$PSSamplePath to the samples folder for this module"
-$global:PSSamplePath = Join-Path -path $PSScriptroot -ChildPath Samples
+$global:PSSamplePath = Join-Path -Path $PSScriptRoot -ChildPath Samples
 
-Write-Verbose "Add ToDo options to the ISE or VS Code"
+#region editor integrations
+Write-Verbose 'Add ToDo options to the ISE or VS Code'
 if ($psEditor) {
-    #This may not be working in newer versions of the PowerShell extension under PowerShell 7
-    Write-Verbose "Defining VSCode additions"
+    Write-Verbose 'Defining VSCode additions'
     $sb = {
-        Param(
-            [Microsoft.PowerShell.EditorServices.Extensions.EditorContext]$context
-        )
-        $prompt = "What do you need to do?"
-        $title = "To Do"
+        Param($context = $psEditor.GetEditorContext() )
+        $prompt = 'What do you need to do?'
+        $title = 'To Do'
         $item = Invoke-InputBox -Title $title -Prompt $prompt
-        $todo = "# [$(Get-Date)] TODO: $item"
+        $todo = "# TODO: $item [$(Get-Date)]"
         $context.CurrentFile.InsertText($todo)
     }
     $rParams = @{
-        Name           = "Insert.ToDo"
-        DisplayName    = "Insert ToDo"
+        Name           = 'Insert.ToDo'
+        DisplayName    = 'Insert ToDo'
         ScriptBlock    = $sb
         SuppressOutput = $false
     }
     Register-EditorCommand @rParams
-}
-elseif ($psise) {
-    Write-Verbose "Defining ISE additions"
 
-    if ($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.DisplayName -notcontains "ToDo") {
+    Write-Verbose 'Adding Set-LocationToFile'
+    Function Set-LocationToFile {
+        #set location to directory of current file
+        [CmdletBinding()]
+        [alias('sd', 'jmp')]
+        [OutputType('none')]
+        Param ()
+
+        if ($host.name -match 'Code') {
+
+            $context = $psEditor.GetEditorContext()
+            $thispath = $context.CurrentFile.Path
+            $target = Split-Path -Path $thispath
+            Write-Verbose "Using $thispath"
+            Write-Verbose "Changing to $target"
+            Set-Location -Path $target
+
+            Clear-Host
+        }
+        else {
+            Write-Warning 'This command must be run in the VS Code integrated PowerShell terminal.'
+        }
+    }
+} #VSCode
+elseif ($psIse) {
+    Write-Verbose 'Defining ISE additions'
+
+    if ($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.DisplayName -NotContains 'ToDo') {
 
         $action = {
-            $prompt = "What do you need to do?"
-            $title = "To Do"
+            $prompt = 'What do you need to do?'
+            $title = 'To Do'
             $item = Invoke-InputBox -Title $title -Prompt $prompt
             $todo = "# [$(Get-Date)] TODO: $item"
             $psise.CurrentFile.Editor.InsertText($todo)
@@ -112,20 +149,37 @@ elseif ($psise) {
             $psise.CurrentFile.editor.SetCaretPosition($psise.CurrentFile.Editor.CaretLine, $psise.CurrentFile.Editor.CaretColumn)
         }
         #add the action to the Add-Ons menu
-        $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add("ToDo", $Action, "Ctrl+Alt+2" ) | Out-Null
+        $psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Add('ToDo', $Action, 'Ctrl+Alt+2' ) | Out-Null
+    }
+
+    Function Set-LocationToFile {
+        [cmdletbinding()]
+        [alias('sd', 'jmp')]
+        [OutputType('none')]
+        Param()
+
+        if ($host.name -match 'ISE') {
+            $path = Split-Path -Path $psISE.CurrentFile.FullPath
+            Set-Location -Path $path
+            Clear-Host
+        }
+        Else {
+            Write-Warning 'This command must be run the the PowerShell ISE.'
+        }
     }
 }
+#endregion
 
 #define a function to open the PDF version of the README and other documentation
 Function Open-PSScriptToolsHelp {
     [cmdletbinding()]
     Param()
-    Write-Verbose "Starting $($myinvocation.mycommand)"
-    $pdf = Join-Path -path $PSScriptRoot -ChildPath PSScriptToolsManual.pdf
+    Write-Verbose "Starting $($MyInvocation.MyCommand)"
+    $pdf = Join-Path -Path $PSScriptRoot -ChildPath PSScriptToolsManual.pdf
     Write-Verbose "Testing the path $pdf"
     if (Test-Path -Path $pdf) {
         Try {
-            write-Verbose "Invoking the PDF"
+            Write-Verbose 'Invoking the PDF'
             Invoke-Item -Path $pdf -ErrorAction Stop
         }
         Catch {
@@ -135,5 +189,7 @@ Function Open-PSScriptToolsHelp {
     else {
         Write-Warning "Can't find $pdf."
     }
-    Write-Verbose "Ending $($myinvocation.MyCommand)"
+    Write-Verbose "Ending $($MyInvocation.MyCommand)"
 }
+
+$VerbosePreference = 'SilentlyContinue'

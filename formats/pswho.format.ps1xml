@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 Format type data generated 04/09/2021 11:39:49 by PROSPERO\Jeff
 
@@ -29,8 +29,8 @@ https://github.com/jdhitsolutions/PSScriptTools
               <ListItem>
                 <Label>Elevated</Label>
                 <ScriptBlock>
-                  If ($host.name -match "console" -AND $_.elevated) {
-                    "$([char]0x1b)[38;5;207m$($_.Elevated)$([char]0x1b)[0m"
+                  If ($host.name -match "console|code|remotehost" -AND $_.elevated) {
+                    "$([char]27)[38;5;207m$($_.Elevated)$([char]27)[0m"
                   }
                   else {
                    $_.Elevated
